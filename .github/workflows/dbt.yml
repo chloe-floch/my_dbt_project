@@ -47,12 +47,12 @@ jobs:
           echo "------ profiles.yml content ------"
           cat ~/.dbt/profiles.yml
 
-      - name: Run dbt debug with explicit --profiles-dir
+      - name: Run dbt debug 
         run: |
-          dbt debug --profiles-dir ~/.dbt --target prod
+          dbt debug --target prod
 
-      - name: Run dbt build
+      - name: Run dbt build on state:modified+
         run: |
           dbt deps
-          dbt build --profiles-dir ~/.dbt --target prod
+          dbt build --target prod --select state:modified+ --state last_manifest/
 
