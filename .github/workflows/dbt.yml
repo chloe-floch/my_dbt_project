@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v3
         with:
           python-version: '3.10'
 
@@ -38,7 +38,7 @@ jobs:
           dbt debug --target prod
 
       - name: Download last manifest
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: manifest
           path: last_manifest/
@@ -52,7 +52,7 @@ jobs:
           dbt build --target prod --select state:modified+ --state last_manifest/
 
       - name: Upload manifest.json for next run
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: manifest
           path: target/manifest.json
