@@ -47,7 +47,7 @@ jobs:
           echo "------ profiles.yml content ------"
           cat ~/.dbt/profiles.yml
 
-      - name: Run dbt debug with explicit --profiles-dir
+      - name: Run dbt debug 
         run: |
           dbt debug --target prod
 
