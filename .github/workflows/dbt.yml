@@ -15,8 +15,7 @@
       location: \"EU\"
       keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
       threads: 4
-      timeout_seconds: 300
-" > ~/.dbt/profiles.yml
+      timeout_seconds: 300" > ~/.dbt/profiles.yml
 
     echo "------ ~/.dbt directory ------"
     ls -la ~/.dbt
