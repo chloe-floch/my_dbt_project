@@ -48,7 +48,10 @@ jobs:
                 keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
                 threads: 4
                 timeout_seconds: 300" > ~/.dbt/profiles.yml
-                
+
+      - name: Check generated profiles.yml
+        run: cat ~/.dbt/profiles.yml                
+      
       - name: Debug dbt
         run: |
           dbt debug --target prod
