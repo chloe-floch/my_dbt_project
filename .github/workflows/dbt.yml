@@ -1,5 +1,4 @@
 name: dbt CI/CD (v4)
-
 on:
   # push:
   #  branches:
@@ -38,18 +37,18 @@ jobs:
         run: |
           mkdir -p ~/.dbt
           echo "dbt_test:
-        target: prod
-        outputs:
-          prod:
-            type: bigquery
-            method: service-account
-            project: \"${{ secrets.GCP_PROJECT }}\"
-            dataset: \"dbt_prod\"
-            location: \"EU\"
-            keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
-            threads: 4
-            timeout_seconds: 300" > ~/.dbt/profiles.yml
-         
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: \"${{ secrets.GCP_PROJECT }}\"
+                dataset: \"dbt_prod\"
+                location: \"EU\"
+                keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
+                threads: 4
+                timeout_seconds: 300" > ~/.dbt/profiles.yml
+                
       - name: Debug dbt
         run: |
           dbt debug --target prod
