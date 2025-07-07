@@ -1,22 +1,64 @@
-- name: Generate profiles.yml and debug
-  env:
-    DBT_PROFILES_DIR: ~/.dbt
-  run: |
-    mkdir -p ~/.dbt
-    echo "dbt_test:
-      target: prod
-      outputs:
-        prod:
-          type: bigquery
-          method: service-account
-          project: \"${{ secrets.GCP_PROJECT }}\"
-          dataset: \"dbt_prod\"
-          location: \"EU\"
-          keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
-          threads: 4
-          timeout_seconds: 300" > ~/.dbt/profiles.yml
- 
-     cat ~/.dbt/profiles.yml
- 
-     dbt debug --target prod
+name: dbt CI/CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  dbt-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt (BigQuery version)
+        run: |
+          pip install dbt-bigquery
+
+      - name: Set up GCP credentials
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_KEYFILE }}
+        run: |
+          echo "${GOOGLE_APPLICATION_CREDENTIALS}" > ./keyfile.json
+
+      - name: Generate profiles.yml and debug
+        env:
+          DBT_PROFILES_DIR: ~/.dbt
+        run: |
+          mkdir -p ~/.dbt
+          echo "dbt_test:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: \"${{ secrets.GCP_PROJECT }}\"
+                dataset: \"dbt_prod\"
+                location: \"EU\"
+                keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
+                threads: 4
+                timeout_seconds: 300" > ~/.dbt/profiles.yml
+
+          echo "------ profiles.yml generated ------"
+          cat ~/.dbt/profiles.yml
+
+          echo "------ Running dbt debug ------"
+          dbt debug --target prod
+
+      - name: Download last manifest (optional)
+        uses: actions/download-artifact@v4
+        with:
+          name: manifest
+          path: last_manifest/
+        continue-on-error: true
+
+      - name: Run dbt build on state:modified+
+        run: |
+          dbt deps
+          dbt build --target prod --select state:modified+ --state last_manifest/
 
