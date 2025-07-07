@@ -1,27 +1,58 @@
-- name: Generate profiles.yml and debug (all in one)
-  env:
-    DBT_PROFILES_DIR: ~/.dbt
-  run: |
-    mkdir -p ~/.dbt
+name: dbt CI/CD
 
-    echo "dbt_test:
-  target: prod
-  outputs:
-    prod:
-      type: bigquery
-      method: service-account
-      project: \"${{ secrets.GCP_PROJECT }}\"
-      dataset: \"dbt_prod\"
-      location: \"EU\"
-      keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
-      threads: 4
-      timeout_seconds: 300" > ~/.dbt/profiles.yml
+on:
+  workflow_dispatch:  # Tu déclenches manuellement
 
-    echo "------ ~/.dbt directory ------"
-    ls -la ~/.dbt
+jobs:
+  dbt-run:
+    runs-on: ubuntu-latest
 
-    echo "------ profiles.yml content ------"
-    cat ~/.dbt/profiles.yml
+    env:
+      DBT_PROFILES_DIR: ~/.dbt
 
-    echo "------ dbt debug ------"
-    dbt debug --target prod
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt (BigQuery)
+        run: |
+          pip install dbt-bigquery
+
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          echo "dbt_test:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                method: service-account
+                project: \"${{ secrets.GCP_PROJECT }}\"
+                dataset: \"dbt_prod\"
+                location: \"EU\"
+                keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
+                threads: 4
+                timeout_seconds: 300" > ~/.dbt/profiles.yml
+
+      - name: Check that profiles.yml exists
+        run: |
+          echo "------ DBT_PROFILES_DIR: $DBT_PROFILES_DIR ------"
+          ls -la ~
+          ls -la ~/.dbt
+          echo "------ profiles.yml content ------"
+          cat ~/.dbt/profiles.yml
+
+      - name: Run dbt debug with explicit --profiles-dir
+        run: |
+          dbt debug --profiles-dir ~/.dbt --target prod
+
+      - name: Run dbt build
+        run: |
+          dbt deps
+          dbt build --profiles-dir ~/.dbt --target prod
+
