@@ -49,7 +49,7 @@ jobs:
             keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
             threads: 4
             timeout_seconds: 300
-    " > ~/.dbt/profiles.yml
+" > ~/.dbt/profiles.yml
          
       - name: Debug dbt
         run: |
