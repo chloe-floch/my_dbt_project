@@ -1,0 +1,59 @@
+name: dbt CI/CD
+
+on:
+  # push:
+  #  branches:
+  #   - main           # Déclenche le job sur push dans main
+  workflow_dispatch:   # Permet de déclencher manuellement depuis l'UI Actions
+  # schedule:
+  #  - cron: '0 6 * * *' # (Optionnel) Déclenche chaque jour à 06:00
+
+jobs:
+  dbt-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt (BigQuery version)
+        run: |
+          pip install dbt-bigquery
+
+      - name: Set up GCP credentials
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_KEYFILE }}
+        run: |
+          echo "${GOOGLE_APPLICATION_CREDENTIALS}" > ./keyfile.json
+
+      - name: Debug dbt
+        env:
+          DBT_PROFILES_DIR: .
+        run: |
+          dbt debug --target prod
+
+      - name: Download last manifest
+        uses: actions/download-artifact@v3
+        with:
+          name: manifest
+          path: last_manifest/
+        continue-on-error: true
+
+      - name: Run dbt build on state:modified+
+        env:
+          DBT_PROFILES_DIR: .
+        run: |
+          dbt deps
+          dbt build --target prod --select state:modified+ --state last_manifest/
+
+      - name: Upload manifest.json for next run
+        uses: actions/upload-artifact@v3
+        with:
+          name: manifest
+	  path: target/manifest.json
+       
