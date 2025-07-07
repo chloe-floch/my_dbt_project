@@ -1,54 +1,19 @@
-name: 'dbt CI/CD'
+- name: Create profiles.yml
+  run: |
+    mkdir -p ~/.dbt
+    cat > ~/.dbt/profiles.yml <<EOF
+dbt_test:
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account-json
+      project: "${GCP_PROJECT_ID}"
+      dataset: "${GCP_BQ_DATASET}"
+      keyfile_json: ${GCP_KEYFILE_JSON}
+      threads: 1
+  target: dev
+EOF
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  dbt-build:
-    runs-on: ubuntu-latest
-
-    env:
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      GCP_BQ_DATASET: ${{ secrets.GCP_BQ_DATASET }}
-      GCP_KEYFILE_JSON: ${{ secrets.GCP_KEYFILE_JSON }}
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.11
-
-      - name: Install dbt BigQuery adapter
-        run: pip install dbt-bigquery
-
-      - name: Create profiles.yml
-        run: |
-          mkdir -p ~/.dbt
-          echo "dbt_test:" > ~/.dbt/profiles.yml
-          echo "  outputs:" >> ~/.dbt/profiles.yml
-          echo "    dev:" >> ~/.dbt/profiles.yml
-          echo "      type: bigquery" >> ~/.dbt/profiles.yml
-          echo "      method: service-account-json" >> ~/.dbt/profiles.yml
-          echo "      project: \"${GCP_PROJECT_ID}\"" >> ~/.dbt/profiles.yml
-          echo "      dataset: \"${GCP_BQ_DATASET}\"" >> ~/.dbt/profiles.yml
-          echo "      keyfile_json: ${GCP_KEYFILE_JSON}" >> ~/.dbt/profiles.yml
-          echo "      threads: 1" >> ~/.dbt/profiles.yml
-          echo "  target: dev" >> ~/.dbt/profiles.yml
-
-      - name: Debug dbt connection
-        run: dbt debug
-
-      - name: Install dbt deps
-        run: dbt deps
-
-      - name: Run dbt build
-        run: dbt build --profiles-dir ~/.dbt
+    echo "profiles.yml generated:"
+    cat ~/.dbt/profiles.yml
 
