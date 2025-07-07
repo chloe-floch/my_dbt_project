@@ -1,39 +1,26 @@
-name: dbt CI/CD (v4)
+---
+name: dbt CI/CD 
 on:
-  # push:
-  #  branches:
-  #   - main           # Déclenche le job sur push dans main
-  workflow_dispatch:   # Permet de déclencher manuellement depuis l'UI Actions
-  # schedule:
-  #  - cron: '0 6 * * *' # (Optionnel) Déclenche chaque jour à 06:00
-
+  workflow_dispatch: null
 jobs:
   dbt-run:
     runs-on: ubuntu-latest
-
-    env:
-      DBT_PROFILES_DIR: ~/.dbt
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
-          python-version: '3.10'
-
+          python-version: "3.10"
       - name: Install dbt (BigQuery version)
         run: |
           pip install dbt-bigquery
-
       - name: Set up GCP credentials
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_KEYFILE }}
         run: |
           echo "${GOOGLE_APPLICATION_CREDENTIALS}" > ./keyfile.json
-
-      - name: Create profiles.yml 
+      - name: Create profiles.yml
         run: |
           mkdir -p ~/.dbt
           echo "dbt_test:
@@ -48,29 +35,24 @@ jobs:
                 keyfile_json: ${{ secrets.GCP_KEYFILE_JSON }}
                 threads: 4
                 timeout_seconds: 300" > ~/.dbt/profiles.yml
-
       - name: Check generated profiles.yml
-        run: cat ~/.dbt/profiles.yml                
-      
+        run: cat ~/.dbt/profiles.yml
       - name: Debug dbt
+        env:
+          DBT_PROFILES_DIR: ~/.dbt
         run: |
           dbt debug --target prod
-
       - name: Download last manifest
         uses: actions/download-artifact@v4
         with:
           name: manifest
           path: last_manifest/
         continue-on-error: true
-
       - name: Run dbt build on state:modified+
-        run: |
+        env:
+          DBT_PROFILES_DIR: ~/.dbt
+        run: >
           dbt deps
+
           dbt build --target prod --select state:modified+ --state last_manifest/
 
-      - name: Upload manifest.json for next run
-        uses: actions/upload-artifact@v4
-        with:
-          name: manifest
-          path: target/manifest.json
-       
