@@ -40,7 +40,6 @@ jobs:
           echo "      method: service-account-json" >> ~/.dbt/profiles.yml
           echo "      project: \"${GCP_PROJECT_ID}\"" >> ~/.dbt/profiles.yml
           echo "      dataset: \"${GCP_BQ_DATASET_DEV}\"" >> ~/.dbt/profiles.yml
-          echo "      schema: \"${GCP_BQ_DATASET_DEV}\"" >> ~/.dbt/profiles.yml
           echo "      keyfile_json: ${GCP_KEYFILE_JSON}" >> ~/.dbt/profiles.yml
           echo "      threads: 1" >> ~/.dbt/profiles.yml
           echo "  target: dev" >> ~/.dbt/profiles.yml
@@ -84,7 +83,6 @@ jobs:
           echo "      method: service-account-json" >> ~/.dbt/profiles.yml
           echo "      project: \"${GCP_PROJECT_ID}\"" >> ~/.dbt/profiles.yml
           echo "      dataset: \"${GCP_BQ_DATASET_PROD}\"" >> ~/.dbt/profiles.yml
-          echo "      schema: \"${GCP_BQ_DATASET_PROD}\"" >> ~/.dbt/profiles.yml
           echo "      keyfile_json: ${GCP_KEYFILE_JSON}" >> ~/.dbt/profiles.yml
           echo "      threads: 1" >> ~/.dbt/profiles.yml
           echo "  target: prod" >> ~/.dbt/profiles.yml
