@@ -43,6 +43,10 @@ jobs:
           echo "      keyfile_json: ${GCP_KEYFILE_JSON}" >> ~/.dbt/profiles.yml
           echo "      threads: 1" >> ~/.dbt/profiles.yml
           echo "  target: dev" >> ~/.dbt/profiles.yml
+
+      - name: Show generated profiles.yml
+        run: cat ~/.dbt/profiles.yml
+        
       - name: Debug dbt connection
         run: dbt debug
 
